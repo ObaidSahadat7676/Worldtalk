@@ -86,6 +86,19 @@ select { width:100%; padding:13px 14px; border-radius:12px; border:1px solid lig
 .notice { background:light-dark(#fff6e7,#392d20); color:light-dark(#8b5b14,#ffd69a); border-radius:12px; padding:11px 13px; font-size:11px; line-height:1.8; margin-top:14px; }
 .toast { position:fixed; bottom:22px; left:50%; transform:translate(-50%,20px); opacity:0; pointer-events:none; background:#202a3e; color:#fff; padding:12px 18px; border-radius:12px; font-size:13px; transition:.25s; z-index:10; box-shadow:0 8px 30px #0005; text-align:center; width:max-content; max-width:90vw; }
 .toast.show { opacity:1; transform:translate(-50%,0); }
+.chat-backdrop { position:fixed; inset:0; z-index:20; display:none; align-items:center; justify-content:center; padding:16px; background:#080c18d9; }
+.chat-backdrop.show { display:flex; }
+.chat-window { width:min(620px,100%); height:min(720px,92vh); display:flex; flex-direction:column; overflow:hidden; border-radius:22px; background:light-dark(#fff,#171f31); color:light-dark(#171a2b,#f5f6fc); border:1px solid light-dark(#e5e6ef,#303a51); }
+.chat-head { display:flex; align-items:center; justify-content:space-between; padding:16px 19px; border-bottom:1px solid light-dark(#e7e8f1,#303a51); }
+.chat-status { color:#20b887; font-size:12px; }
+.chat-messages { flex:1; overflow:auto; padding:18px; display:flex; flex-direction:column; gap:10px; }
+.chat-bubble { max-width:82%; padding:10px 13px; border-radius:15px; background:light-dark(#f0efff,#292344); overflow-wrap:anywhere; line-height:1.8; font-size:14px; }
+.chat-bubble.mine { align-self:flex-start; background:var(--site-primary); color:#fff; }
+.chat-bubble.theirs { align-self:flex-end; }
+.chat-compose { display:flex; gap:9px; padding:13px; border-top:1px solid light-dark(#e7e8f1,#303a51); }
+.chat-compose textarea { flex:1; min-width:0; resize:none; min-height:46px; max-height:110px; padding:11px 13px; border-radius:12px; border:1px solid light-dark(#e1e3ed,#39445d); background:light-dark(#fafaff,#202a3e); color:inherit; }
+.chat-compose button { min-width:82px; }
+.chat-wait { margin:auto; text-align:center; color:light-dark(#666c80,#aeb5c9); line-height:2; padding:25px; }
 @media(max-width:800px) { .hero { grid-template-columns:1fr; gap:32px; } .hero-copy { text-align:center; } .lead { margin-left:auto; margin-right:auto; } .hero-actions,.trust { justify-content:center; } .preview-card { max-width:520px; width:100%; margin:auto; } .features { grid-template-columns:1fr; } .nav { display:none; } }
 @media(max-width:480px) { .topbar { height:66px; padding:0 15px; } .brand { font-size:18px; } .top-actions .btn { padding:10px 12px; font-size:12px; } main { padding:30px 15px 50px; } h1 { font-size:35px; } .lead { font-size:14px; } .mock-video { min-height:220px; } .modal { padding:19px; } }
 </style>
@@ -149,13 +162,42 @@ select { width:100%; padding:13px 14px; border-radius:12px; border:1px solid lig
   </div>
 </div>
 <div class="toast" id="toast" role="status"></div>
+<div class="chat-backdrop" id="chatBackdrop" role="dialog" aria-modal="true" aria-label="گفت‌وگوی متنی">
+  <section class="chat-window">
+    <header class="chat-head"><div><strong>WorldTalk · گفت‌وگوی متنی</strong><div class="chat-status" id="chatStatus">در حال آماده‌سازی…</div></div><button class="close" onclick="endTextChat()" aria-label="پایان گفت‌وگو">×</button></header>
+    <div class="chat-messages" id="chatMessages"><div class="chat-wait" id="chatWait">در حال جست‌وجوی یک نفر…<br>لطفاً چند لحظه صبر کن.</div></div>
+    <form class="chat-compose" id="chatForm"><textarea id="chatInput" rows="1" placeholder="پیامت را بنویس…" disabled></textarea><button class="btn btn-primary" id="sendMessage" type="submit" disabled>ارسال</button></form>
+  </section>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 let selectedMode = 'video';
+const SUPABASE_URL = 'https://qpkbhldrfwzfchezifrn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_uE8dsbrpn3k6i3C1rhqVEg_74ZJtPHi';
+let worldtalkDb = null;
+let currentUser = null;
+let currentConversation = null;
+let messageChannel = null;
+let matchTimer = null;
+let seenMessageIds = new Set();
 function openJoin(){document.getElementById('joinModal').classList.add('show');document.body.style.overflow='hidden';}
 function closeJoin(){document.getElementById('joinModal').classList.remove('show');document.body.style.overflow='';}
 function setMode(button){document.querySelectorAll('.mode').forEach(x=>x.classList.remove('active'));button.classList.add('active');selectedMode=button.dataset.mode;}
 function showToast(message){const t=document.getElementById('toast');t.textContent=message;t.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.classList.remove('show'),3600);}
-function startDemo(){if(!document.getElementById('age').checked){showToast('برای ادامه، تأیید کنید که ۱۸ سال یا بیشتر دارید.');return;}const country=document.getElementById('country').value;const mode={video:'تصویری',voice:'صوتی',text:'متنی'}[selectedMode];closeJoin();showToast('انتخاب شما: گفت‌وگوی '+mode+' · '+(country==='all'?'همه کشورها':country)+'. این بخش در نسخه نمایشی شبیه‌سازی شده است.');}
+function getDatabase(){if(!window.supabase){throw new Error('کتابخانه اتصال بارگذاری نشد. صفحه را تازه‌سازی کن.');}if(!worldtalkDb){worldtalkDb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);}return worldtalkDb;}
+async function ensureAnonymousUser(){const db=getDatabase();const {data:{session},error:sessionError}=await db.auth.getSession();if(sessionError)throw sessionError;if(session){currentUser=session.user;return;}const {data,error}=await db.auth.signInAnonymously();if(error)throw error;currentUser=data.user;}
+function showChat(){document.getElementById('chatBackdrop').classList.add('show');document.body.style.overflow='hidden';}
+function setChatStatus(message){document.getElementById('chatStatus').textContent=message;}
+function appendChatMessage(message){if(!message || seenMessageIds.has(message.id))return;seenMessageIds.add(message.id);const list=document.getElementById('chatMessages');const wait=document.getElementById('chatWait');if(wait)wait.remove();const bubble=document.createElement('div');bubble.className='chat-bubble '+(message.sender_id===currentUser.id?'mine':'theirs');bubble.textContent=message.body;list.appendChild(bubble);list.scrollTop=list.scrollHeight;}
+async function loadChatMessages(){const {data,error}=await getDatabase().from('messages').select('id,conversation_id,sender_id,body,created_at').eq('conversation_id',currentConversation).order('created_at',{ascending:true}).limit(100);if(error)throw error;(data||[]).forEach(appendChatMessage);}
+function listenForMessages(){messageChannel=getDatabase().channel('worldtalk-'+currentConversation).on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'conversation_id=eq.'+currentConversation},payload=>appendChatMessage(payload.new)).subscribe();}
+async function sendChatMessage(event){event.preventDefault();const input=document.getElementById('chatInput');const body=input.value.trim();if(!body||!currentConversation)return;const send=document.getElementById('sendMessage');send.disabled=true;const {data,error}=await getDatabase().from('messages').insert({conversation_id:currentConversation,sender_id:currentUser.id,body}).select('id,conversation_id,sender_id,body,created_at').single();send.disabled=false;if(error){showToast('پیام ارسال نشد: '+error.message);return;}appendChatMessage(data);input.value='';input.focus();}
+async function checkForPartner(country){if(!currentUser||currentConversation)return;const {data,error}=await getDatabase().rpc('find_worldtalk_partner',{p_country:country,p_mode:'text'});if(error)throw error;const match=Array.isArray(data)?data[0]:data;if(match&&match.conversation_id){currentConversation=match.conversation_id;clearTimeout(matchTimer);setChatStatus('وصل شدید؛ اکنون پیام بدهید.');document.getElementById('chatInput').disabled=false;document.getElementById('sendMessage').disabled=false;await loadChatMessages();listenForMessages();return;}matchTimer=setTimeout(()=>checkForPartner(country).catch(showMatchError),2500);}
+function showMatchError(error){setChatStatus('اتصال با خطا روبه‌رو شد.');showToast(error.message||'خطا در اتصال به سرویس.');}
+async function startTextChat(country){showChat();document.getElementById('chatMessages').innerHTML='<div class="chat-wait" id="chatWait">در حال اتصال امن و جست‌وجوی یک نفر…<br>این صفحه را باز نگه دار.</div>';setChatStatus('در حال اتصال…');try{await ensureAnonymousUser();await checkForPartner(country);}catch(error){showMatchError(error);}}
+async function endTextChat(){clearTimeout(matchTimer);if(messageChannel){await getDatabase().removeChannel(messageChannel);messageChannel=null;}if(currentConversation){try{await getDatabase().rpc('end_worldtalk_conversation',{p_conversation_id:currentConversation});}catch(error){console.error(error);}}else if(currentUser&&worldtalkDb){await worldtalkDb.from('waiting_users').delete().eq('user_id',currentUser.id);}currentConversation=null;seenMessageIds.clear();document.getElementById('chatBackdrop').classList.remove('show');document.body.style.overflow='';document.getElementById('chatInput').disabled=true;document.getElementById('sendMessage').disabled=true;document.getElementById('chatInput').value='';}
+function startDemo(){if(!document.getElementById('age').checked){showToast('برای ادامه، تأیید کنید که ۱۸ سال یا بیشتر دارید.');return;}const country=document.getElementById('country').value;if(selectedMode!=='text'){showToast('فعلاً فقط گفت‌وگوی متنی فعال می‌شود.');return;}closeJoin();startTextChat(country);}
+document.getElementById('chatForm').addEventListener('submit',sendChatMessage);
 document.getElementById('joinModal').addEventListener('click',e=>{if(e.target.id==='joinModal')closeJoin();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeJoin();});
 </script>
