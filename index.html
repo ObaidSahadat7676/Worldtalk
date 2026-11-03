@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101522">
+<title>WorldTalk — گفت‌وگوی جهانی</title>
+<style>
+:root {
+  --site-primary: #6857e8;
+  --site-on-primary: #ffffff;
+  --site-secondary: #172238;
+  --site-on-secondary: #f4f6ff;
+  --site-background: #101522;
+  --site-on-background: #f5f6fc;
+  --site-font-body: Tahoma, Arial, sans-serif;
+  --site-font-heading: Tahoma, Arial, sans-serif;
+  --site-heading-scale: 1;
+  --site-spacing-scale: 1;
+  --site-radius-scale: 1;
+  --site-decoration-opacity: 1;
+  color-scheme: light dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--site-font-body); background: var(--site-background); color: var(--site-on-background); }
+button, select, input { font: inherit; }
+button { cursor: pointer; }
+#app { min-height: 100vh; width: 100%; border-radius: 0; overflow: hidden; background: light-dark(#f5f6fc, #101522); color: light-dark(#171a2b, #f5f6fc); }
+.topbar { height: 76px; display:flex; align-items:center; justify-content:space-between; padding: 0 clamp(18px,5vw,76px); border-bottom:1px solid light-dark(#e7e8f1,#262d40); background: light-dark(#fff,#131a29); }
+.brand { display:flex; align-items:center; gap:11px; font-weight:800; font-size:21px; letter-spacing:-.5px; }
+.logo { width:39px; height:39px; border-radius:14px; display:grid; place-items:center; color:white; background:linear-gradient(135deg,#8978ff,#5745d6); box-shadow:0 7px 20px #6857e844; }
+.nav { display:flex; align-items:center; gap:25px; color:light-dark(#62677b,#aab1c6); font-size:14px; }
+.nav a { color:inherit; text-decoration:none; }
+.nav a:hover { color:var(--site-primary); }
+.top-actions { display:flex; gap:10px; align-items:center; }
+.btn { border:0; border-radius:13px; padding:12px 18px; font-weight:700; transition:.2s; }
+.btn-primary { background:var(--site-primary); color:white; box-shadow:0 8px 20px #6857e833; }
+.btn-primary:hover { transform:translateY(-1px); filter:brightness(1.08); }
+.btn-soft { background:light-dark(#f0efff,#242b40); color:light-dark(#5142c5,#c9c2ff); }
+main { max-width:1220px; margin:auto; padding: clamp(28px,5vw,64px) 22px 70px; }
+.hero { display:grid; grid-template-columns:1.03fr .97fr; gap:46px; align-items:center; }
+.eyebrow { display:inline-flex; gap:8px; align-items:center; background:light-dark(#eeecff,#25213f); color:light-dark(#5b4bd0,#c5bdff); padding:8px 13px; border-radius:999px; font-size:12px; font-weight:700; }
+.pulse { width:7px; height:7px; border-radius:50%; background:#3dd69b; box-shadow:0 0 0 4px #3dd69b22; }
+h1 { font-family:var(--site-font-heading); font-size:clamp(34px,5vw,58px); line-height:1.35; letter-spacing:-1.5px; margin:18px 0 14px; }
+.gradient { background:linear-gradient(90deg,#8978ff,#39c9bd); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.lead { color:light-dark(#666c80,#aeb5c9); line-height:2.1; font-size:16px; max-width:570px; margin:0 0 25px; }
+.hero-actions { display:flex; gap:12px; flex-wrap:wrap; }
+.hero-actions .btn { padding:14px 22px; }
+.trust { display:flex; align-items:center; gap:18px; margin-top:25px; color:light-dark(#85899a,#8992a9); font-size:12px; }
+.trust span { display:flex; align-items:center; gap:6px; }
+.preview-card { background:light-dark(#fff,#171f31); border:1px solid light-dark(#e8e9f2,#2b354c); border-radius:28px; padding:18px; box-shadow:0 24px 80px #070d1d26; position:relative; }
+.preview-card:before { content:""; position:absolute; inset:-35px -25px auto auto; width:180px; height:180px; background:#7564ef; filter:blur(95px); opacity:calc(var(--site-decoration-opacity) * .23); pointer-events:none; }
+.mock-head { display:flex; justify-content:space-between; align-items:center; padding:3px 3px 15px; font-size:13px; font-weight:700; }
+.live { color:#20b887; display:flex; gap:7px; align-items:center; font-size:11px; }
+.mock-video { min-height:260px; border-radius:20px; overflow:hidden; position:relative; display:grid; place-items:center; background:radial-gradient(circle at 50% 35%,#596b9b,#26324e 52%,#141c30); }
+.avatar { width:105px; height:105px; border-radius:35px; display:grid; place-items:center; font-size:45px; background:linear-gradient(145deg,#ffd7bd,#ba7e87); border:4px solid #ffffff55; box-shadow:0 12px 45px #080d1d66; }
+.mock-label { position:absolute; bottom:14px; right:15px; left:15px; display:flex; justify-content:space-between; color:white; font-size:12px; }
+.mock-controls { display:flex; justify-content:center; gap:12px; padding:16px 0 3px; }
+.circle-btn { width:43px; height:43px; border:1px solid light-dark(#e8e9f2,#3a455d); background:light-dark(#f7f7fc,#242d42); color:light-dark(#33394d,#e7eaff); border-radius:50%; display:grid; place-items:center; font-size:17px; }
+.circle-btn.end { background:#e74d68; color:white; border:0; }
+.section-title { text-align:center; margin:70px 0 25px; }
+.section-title h2 { font-size:27px; margin:0 0 9px; }
+.section-title p { color:light-dark(#777d91,#9ba4b9); font-size:14px; }
+.features { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.feature { background:light-dark(#fff,#171f31); border:1px solid light-dark(#e8e9f2,#2b354c); border-radius:20px; padding:23px; }
+.feature-icon { width:43px; height:43px; border-radius:14px; display:grid; place-items:center; background:light-dark(#eeecff,#292344); color:#9587ff; font-size:21px; }
+.feature h3 { font-size:16px; margin:15px 0 8px; }
+.feature p { color:light-dark(#747a8d,#a1abc0); font-size:13px; line-height:1.9; margin:0; }
+.footer { border-top:1px solid light-dark(#e7e8f1,#262d40); text-align:center; color:light-dark(#888da0,#8992a9); font-size:12px; padding:23px; }
+.modal-backdrop { position:fixed; inset:0; background:#080c18b8; display:none; align-items:center; justify-content:center; padding:16px; z-index:5; }
+.modal-backdrop.show { display:flex; }
+.modal { width:min(560px,100%); max-height:92vh; overflow:auto; border-radius:24px; padding:25px; background:light-dark(#fff,#171f31); color:light-dark(#171a2b,#f5f6fc); border:1px solid light-dark(#e5e6ef,#303a51); box-shadow:0 25px 90px #0008; }
+.modal-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; }
+.modal h2 { margin:0; font-size:23px; }
+.close { border:0; background:light-dark(#f0f1f7,#283248); color:inherit; width:34px; height:34px; border-radius:10px; font-size:20px; }
+.modal-sub { color:light-dark(#777d91,#a1abc0); font-size:13px; line-height:1.8; margin:7px 0 20px; }
+.field-label { display:block; font-size:13px; font-weight:700; margin:17px 0 9px; }
+.modes { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+.mode { border:1px solid light-dark(#e4e5ef,#354058); background:light-dark(#fafaff,#202a3e); color:inherit; border-radius:14px; padding:14px 8px; display:grid; gap:7px; justify-items:center; font-size:12px; }
+.mode strong { font-size:22px; }
+.mode.active { border:2px solid var(--site-primary); background:light-dark(#f0eeff,#2b2750); color:light-dark(#5142c5,#d2ccff); padding:13px 7px; }
+select { width:100%; padding:13px 14px; border-radius:12px; border:1px solid light-dark(#e1e3ed,#39445d); background:light-dark(#fafaff,#202a3e); color:inherit; outline:none; }
+.age-check { display:flex; gap:10px; align-items:flex-start; color:light-dark(#6f7588,#a5aec2); font-size:12px; line-height:1.8; margin:19px 0; }
+.age-check input { margin-top:5px; accent-color:var(--site-primary); }
+.full { width:100%; padding:15px; }
+.notice { background:light-dark(#fff6e7,#392d20); color:light-dark(#8b5b14,#ffd69a); border-radius:12px; padding:11px 13px; font-size:11px; line-height:1.8; margin-top:14px; }
+.toast { position:fixed; bottom:22px; left:50%; transform:translate(-50%,20px); opacity:0; pointer-events:none; background:#202a3e; color:#fff; padding:12px 18px; border-radius:12px; font-size:13px; transition:.25s; z-index:10; box-shadow:0 8px 30px #0005; text-align:center; width:max-content; max-width:90vw; }
+.toast.show { opacity:1; transform:translate(-50%,0); }
+@media(max-width:800px) { .hero { grid-template-columns:1fr; gap:32px; } .hero-copy { text-align:center; } .lead { margin-left:auto; margin-right:auto; } .hero-actions,.trust { justify-content:center; } .preview-card { max-width:520px; width:100%; margin:auto; } .features { grid-template-columns:1fr; } .nav { display:none; } }
+@media(max-width:480px) { .topbar { height:66px; padding:0 15px; } .brand { font-size:18px; } .top-actions .btn { padding:10px 12px; font-size:12px; } main { padding:30px 15px 50px; } h1 { font-size:35px; } .lead { font-size:14px; } .mock-video { min-height:220px; } .modal { padding:19px; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand"><div class="logo">✦</div><span>WorldTalk</span></div>
+    <nav class="nav"><a href="#home">خانه</a><a href="#features">امکانات</a><a href="#safety">امنیت و حریم خصوصی</a></nav>
+    <div class="top-actions"><button class="btn btn-soft" onclick="showToast('بخش حساب کاربری در نسخه بعدی اضافه می‌شود.')">ورود</button><button class="btn btn-primary" onclick="openJoin()">شروع گفت‌وگو</button></div>
+  </header>
+  <main id="home">
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow"><i class="pulse"></i> ارتباط با آدم‌های سراسر جهان</div>
+        <h1>دنیا بزرگ است؛<br><span class="gradient">دوستی‌ها نزدیک‌اند.</span></h1>
+        <p class="lead">با یک کلیک با افراد جدید از کشورهای مختلف آشنا شو. پیام بده، تماس صوتی بگیر یا گفت‌وگوی تصویری را شروع کن؛ همه در یک وب‌سایت و روی هر دستگاه.</p>
+        <div class="hero-actions"><button class="btn btn-primary" onclick="openJoin()">✦ همین حالا وصل شو</button><button class="btn btn-soft" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">بیشتر بدانید</button></div>
+        <div class="trust"><span>🌍 از کشورهای مختلف</span><span>📱 سازگار با موبایل و کامپیوتر</span></div>
+      </div>
+      <div class="preview-card">
+        <div class="mock-head"><span>پیش‌نمایش گفت‌وگو</span><span class="live"><i class="pulse"></i> آماده برای اتصال</span></div>
+        <div class="mock-video"><div class="avatar">🙂</div><div class="mock-label"><span>دوست جدید</span><span>🌐 از سراسر جهان</span></div></div>
+        <div class="mock-controls"><button class="circle-btn" title="میکروفون">🎙</button><button class="circle-btn" title="پیام متنی">💬</button><button class="circle-btn" title="دوربین">▣</button><button class="circle-btn end" title="پایان">×</button></div>
+      </div>
+    </section>
+    <section id="features">
+      <div class="section-title"><h2>راه‌های مختلف برای آشنایی</h2><p>روش ارتباطی دلخواهت را انتخاب کن.</p></div>
+      <div class="features">
+        <article class="feature"><div class="feature-icon">▣</div><h3>گفت‌وگوی تصویری</h3><p>چهره به چهره با افراد جدید صحبت کن؛ با امکان روشن یا خاموش کردن دوربین.</p></article>
+        <article class="feature"><div class="feature-icon">🎙</div><h3>تماس صوتی</h3><p>بدون نیاز به دوربین، صدای همدیگر را بشنوید و گفت‌وگو کنید.</p></article>
+        <article class="feature"><div class="feature-icon">💬</div><h3>پیام متنی</h3><p>وقتی نمی‌خواهی صحبت کنی، گفت‌وگو را با پیام‌های متنی ادامه بده.</p></article>
+      </div>
+    </section>
+    <section id="safety">
+      <div class="section-title"><h2>آشنایی همراه با احترام</h2><p>امنیت کاربران بخشی از طراحی این پلتفرم است.</p></div>
+      <div class="features">
+        <article class="feature"><div class="feature-icon">🛡</div><h3>کنترل و گزارش</h3><p>در نسخه کامل، امکان قطع ارتباط، مسدودسازی و گزارش رفتار نامناسب فراهم می‌شود.</p></article>
+        <article class="feature"><div class="feature-icon">🔒</div><h3>حریم خصوصی</h3><p>اطلاعات شخصی و موقعیت دقیق خود را در گفت‌وگو با افراد ناشناس به اشتراک نگذار.</p></article>
+        <article class="feature"><div class="feature-icon">🌐</div><h3>ارتباط جهانی</h3><p>هدف، فراهم کردن امکان آشنایی میان کاربران کشورهای گوناگون است.</p></article>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">WorldTalk · پیش‌نمایش اولیه محصول · برای کاربران ۱۸ سال به بالا</footer>
+</div>
+<div class="modal-backdrop" id="joinModal" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
+  <div class="modal">
+    <div class="modal-top"><h2 id="joinTitle">شروع یک گفت‌وگوی تازه</h2><button class="close" onclick="closeJoin()" aria-label="بستن">×</button></div>
+    <p class="modal-sub">روش ارتباطت را انتخاب کن و برای آشنایی با یک نفر جدید آماده شو.</p>
+    <span class="field-label">روش گفت‌وگو</span>
+    <div class="modes">
+      <button class="mode active" data-mode="video" onclick="setMode(this)"><strong>▣</strong>تصویری</button>
+      <button class="mode" data-mode="voice" onclick="setMode(this)"><strong>🎙</strong>صوتی</button>
+      <button class="mode" data-mode="text" onclick="setMode(this)"><strong>💬</strong>متنی</button>
+    </div>
+    <label class="field-label" for="country">کشور موردنظر</label>
+    <select id="country"><option value="all">همه کشورها 🌍</option><option>ایالات متحده آمریکا</option><option>افغانستان</option><option>پاکستان</option><option>ایران</option><option>آلمان</option><option>کانادا</option><option>بریتانیا</option><option>ترکیه</option><option>هند</option><option>فرانسه</option><option>استرالیا</option><option>کشور دیگر</option></select>
+    <label class="age-check"><input type="checkbox" id="age"><span>تأیید می‌کنم که ۱۸ سال یا بیشتر دارم و با رعایت قوانین و احترام به دیگران از این سرویس استفاده می‌کنم.</span></label>
+    <button class="btn btn-primary full" onclick="startDemo()">جست‌وجوی یک نفر ←</button>
+    <div class="notice">این نسخه، نمونه نمایشی رابط کاربری است. اتصال واقعی کاربران، تماس صوتی و تصویری، پیام‌رسانی و انتخاب کشور پس از راه‌اندازی سرور و سیستم ارتباط زنده فعال می‌شود.</div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+let selectedMode = 'video';
+function openJoin(){document.getElementById('joinModal').classList.add('show');document.body.style.overflow='hidden';}
+function closeJoin(){document.getElementById('joinModal').classList.remove('show');document.body.style.overflow='';}
+function setMode(button){document.querySelectorAll('.mode').forEach(x=>x.classList.remove('active'));button.classList.add('active');selectedMode=button.dataset.mode;}
+function showToast(message){const t=document.getElementById('toast');t.textContent=message;t.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.classList.remove('show'),3600);}
+function startDemo(){if(!document.getElementById('age').checked){showToast('برای ادامه، تأیید کنید که ۱۸ سال یا بیشتر دارید.');return;}const country=document.getElementById('country').value;const mode={video:'تصویری',voice:'صوتی',text:'متنی'}[selectedMode];closeJoin();showToast('انتخاب شما: گفت‌وگوی '+mode+' · '+(country==='all'?'همه کشورها':country)+'. این بخش در نسخه نمایشی شبیه‌سازی شده است.');}
+document.getElementById('joinModal').addEventListener('click',e=>{if(e.target.id==='joinModal')closeJoin();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeJoin();});
+</script>
+</body>
+</html>
